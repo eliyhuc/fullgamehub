@@ -21,10 +21,17 @@ const App = () => {
 
   return (
     <Router>
-     <Routes>
-      <Route path='/'>{user? <Navigate to={'/dashboard'}></Navigate> : <Login/>}</Route>
-      <Route path='/dashboard' element={Dashboard}></Route>
-     </Routes>
+    {
+      user ? (<>
+           <Routes>
+            <Route path='/dashboard' element={<Dashboard />}></Route>
+          </Routes>
+      </>) : (<>
+        <Routes>
+            <Route path='/' element={<Login />}></Route>
+          </Routes>
+      </>)
+    }
     </Router>
   )
 }
