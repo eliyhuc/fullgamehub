@@ -1,5 +1,6 @@
 html, body{
-  background-color: #00cc99;
+  background-color: #0b1f2a;
+
 }
 h1.title{
   color:#ffffff;
@@ -12,4 +13,21 @@ h1.title{
 .btn{
   margin-top: 20px;
   width: 100%;
+}
+
+.rowitem{
+  margin-bottom: 14px;
+  padding: 20px;
+  border-radius: 12px;
+  background: rgb(232,231,231);
+  background: linear-gradient(180deg, rgba(232,231,231,1) 0%, rgba(255,255,255,1) 100%);
+}
+
+h1.song-title{
+  font-weight: 200;
+  font-size: 24px;
+}
+
+p{
+  margin: 0px; padding: 0px;
 }
