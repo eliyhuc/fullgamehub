@@ -10,6 +10,12 @@ h1.title{
 .form-label{
   color: #ffffff;
 }
+
+.centered{
+  width:100%;
+  text-align: center;
+}
+
 .btn{
   margin-top: 20px;
   width: 100%;

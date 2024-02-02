@@ -27,6 +27,7 @@ const Dashboard = () => {
   }
 
   const loadMyData = async() => {
+    setIsLoading(true)
     try {
       const accountsRef = collection(database, "accounts");
       const q = query(accountsRef, where("accountUid", "==", auth.currentUser.uid));
@@ -47,7 +48,10 @@ const Dashboard = () => {
       }))
       setMyPlaylist(arr2)
 
+      setIsLoading(false)
+
     } catch (error) {
+      setIsLoading(false)
       toast.error(error.message)
     }
   }
@@ -109,13 +113,29 @@ const Dashboard = () => {
       <div className='row' style={{paddingTop:30}}>
 
         <div className='col-lg-3'>
+
+
+            {
+              account && (
+              <div className='centered'>
+
+                <div style={{width:140, height:140, borderRadius:100, overflow:'hidden'}}>
+                  <img style={{width:'100%'}} src={account.avatar} alt={account.firstName}></img>
+                </div>
+
+                <h2 style={{color:'#ffcc00', fontWeight:'200', textAlign:'center', fontSize:26}}>{account.firstName} {account.lastName}</h2>
+                <p style={{color:'#ffffff', textAlign:'center'}}>{account.email}</p>
+              </div>)
+            }
+
+
+
           {auth.currentUser.email}<br/>
           {auth.currentUser.uid}
           <button onClick={logoutAction} className='btn btn-outline-danger'>Logout</button>
         </div>
 
         <div className='col-lg-9'>
-
           <div className='row'>
             <div className='col-lg-10'>
               <input
@@ -131,8 +151,37 @@ const Dashboard = () => {
             </div>
           </div>
 
+
+          
+
+
           <div className='row' style={{marginTop:30}}>
-            <dic className='col-lg-12'>
+            <div className='col-lg-12'>
+
+              {
+                isLoading ? (
+                  <div className="spinner-border text-warning" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
+                ) : (
+                  <>
+                  {
+                    myPlaylist.length > 0 && (<>
+                      {
+                        myPlaylist.map(item => 
+                          <Song 
+                            myPlaylist={myPlaylist}
+                            removeFromPlaylist={removeFromPlaylist}
+                            saveToPlaylist={saveToPlaylist}
+                            key={item.trackId} 
+                            item={item} />)
+                      }
+                    </>)
+                  }
+                  </>
+                )
+              }
+
 
               {
                 isLoading ? (<>
@@ -156,8 +205,14 @@ const Dashboard = () => {
                 </>)
               }
 
-            </dic>
+            </div>
           </div>
+
+
+
+
+
+
 
         </div>
       </div>

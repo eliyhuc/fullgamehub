@@ -102,7 +102,7 @@ const Authentication = () => {
                         <div class="spinner-border text-light" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
-                        </>) : (<button onClick={loginAction} className='btn btn-dark'>Login</button>)
+                        </>) : (<button onClick={loginAction} className='btn btn-success'>Login</button>)
                     }
                     
                 </>) : (<>
@@ -168,13 +168,13 @@ const Authentication = () => {
                         <div class="spinner-border text-light" role="status">
                             <span class="visually-hidden">Loading...</span>
                         </div>
-                        </>) : (<button onClick={signupAction} className='btn btn-dark'>Sign Up</button>)
+                        </>) : (<button onClick={signupAction} className='btn btn-warning'>Sign Up</button>)
                     }
                     
                 </>)
             }
 
-            <button onClick={() => setIsLoginView(!isLoginView)} className='btn btn-outline-dark'>
+            <button onClick={() => setIsLoginView(!isLoginView)} className='btn btn-outline-light'>
                 {isLoginView ? "Go to signup" : "Go to login"}
             </button>
 
