@@ -1,10 +1,11 @@
-import React, {useState, useEffect} from 'react'
-import {auth,database} from '../services/firebaseConfig'
+import React, { useState, useEffect } from 'react'
+import { auth, database } from '../services/firebaseConfig'
 import { useNavigate } from 'react-router-dom'
 import { toast, ToastContainer } from 'react-toastify'
-import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, where } from 'firebase/firestore'
+import { addDoc, collection, deleteDoc, doc, getDoc, getDocs, query, updateDoc, where } from 'firebase/firestore'
 import axios from 'axios'
 import Song from '../components/Song'
+import UpdateAccount from '../components/UpdateAccount'
 
 
 const Dashboard = () => {
@@ -17,16 +18,19 @@ const Dashboard = () => {
   const [playlist, setPlaylist] = useState([])
   const [myPlaylist, setMyPlaylist] = useState([])
 
+  const [isEditView, setIsEditView] = useState(false)
 
 
 
 
-  const logoutAction = async() => {
+
+
+  const logoutAction = async () => {
     auth.signOut()
     navigate("/")
   }
 
-  const loadMyData = async() => {
+  const loadMyData = async () => {
     setIsLoading(true)
     try {
       const accountsRef = collection(database, "accounts");
@@ -58,80 +62,108 @@ const Dashboard = () => {
 
   useEffect(() => {
     loadMyData()
-  },[])
+  }, [])
 
 
-  const searchPlaylist = async() => {
+
+  const searchPlaylist = async () => {
     setIsLoading(true)
-    if(search !== ""){
+    if (search !== "") {
       await axios.get(`https://itunes.apple.com/search?term=${search}`)
-      .then(res => {
-        setPlaylist(res.data.results)
-        setIsLoading(false)
-      })
-      .catch(err => {
-        toast.error(err.message)
-        setIsLoading(false)
-      })
+        .then(res => {
+          setPlaylist(res.data.results)
+          setIsLoading(false)
+        })
+        .catch(err => {
+          toast.error(err.message)
+          setIsLoading(false)
+        })
     } else {
       toast.error("Please select your artist / band")
       setIsLoading(false)
     }
   }
 
-  const saveToPlaylist = async(track) => {
+  const saveToPlaylist = async (track) => {
     const mytrack = {
       ...track,
       uid: auth.currentUser.uid,
       createdAt: Date.now()
     }
     await addDoc(collection(database, "playlist"), mytrack)
-    .then(res => {
-      loadMyData()
-      toast.success("Track Added")
-    })
-    .catch(err => {
-      toast.error(err.message)
-    })
+      .then(res => {
+        loadMyData()
+        toast.success("Track Added")
+      })
+      .catch(err => {
+        toast.error(err.message)
+      })
   }
 
-  const removeFromPlaylist = async(id) => {
+  const removeFromPlaylist = async (id) => {
     await deleteDoc(doc(database, "playlist", id))
-    .then(res => {
-      toast.success("Track removed")
-      loadMyData()
-    })
-    .catch(err => {
-      toast.error(err.message)
-    })
+      .then(res => {
+        toast.success("Track removed")
+        loadMyData()
+      })
+      .catch(err => {
+        toast.error(err.message)
+      })
+  }
+
+
+  const updateMyAccount = async(firstName, lastName, city, address, mobile, id) => {
+    try {
+      
+      const accountRef = doc(database, "accounts", id);
+      await updateDoc(accountRef, {
+        firstName:firstName,
+        lastName:lastName,
+        city:city,
+        address:address,
+        mobile:mobile
+      })
+      .then(res => {
+        loadMyData();
+        setIsEditView(false)
+      })
+
+    } catch (error) {
+      toast.error(error.message)
+    }
   }
 
 
   return (
     <div className='container'>
       <ToastContainer />
-      <div className='row' style={{paddingTop:30}}>
+      <div className='row' style={{ paddingTop: 30 }}>
 
         <div className='col-lg-3'>
 
 
-            {
-              account && (
+          {
+            account && (
               <div className='centered'>
+                {
+                  isEditView ? (<>
+                    <UpdateAccount updateMyAccount={updateMyAccount} account={account} />
+                    <button onClick={() => setIsEditView(!isEditView)} className='btn btn-light'>Back</button>
+                  </>) : (<>
+                    <div style={{ width: 140, height: 140, borderRadius: 100, overflow: 'hidden' }}>
+                      <img style={{ width: '100%' }} src={account.avatar} alt={account.firstName}></img>
+                    </div>
+                    <h2 style={{ color: '#ffcc00', fontWeight: '200', textAlign: 'center', fontSize: 26 }}>{account.firstName} {account.lastName}</h2>
+                    <p style={{ color: '#ffffff', textAlign: 'center' }}>{account.email} | Playlist ({myPlaylist.length})</p>
+                    <button onClick={() => setIsEditView(!isEditView)} className='btn btn-light'>Edit</button>
+                  </>)
+                }
+              </div>
 
-                <div style={{width:140, height:140, borderRadius:100, overflow:'hidden'}}>
-                  <img style={{width:'100%'}} src={account.avatar} alt={account.firstName}></img>
-                </div>
-
-                <h2 style={{color:'#ffcc00', fontWeight:'200', textAlign:'center', fontSize:26}}>{account.firstName} {account.lastName}</h2>
-                <p style={{color:'#ffffff', textAlign:'center'}}>{account.email}</p>
-              </div>)
-            }
+            )
+          }
 
 
-
-          {auth.currentUser.email}<br/>
-          {auth.currentUser.uid}
           <button onClick={logoutAction} className='btn btn-outline-danger'>Logout</button>
         </div>
 
@@ -152,10 +184,10 @@ const Dashboard = () => {
           </div>
 
 
-          
 
 
-          <div className='row' style={{marginTop:30}}>
+
+          <div className='row' style={{ marginTop: 30 }}>
             <div className='col-lg-12'>
 
               {
@@ -165,19 +197,19 @@ const Dashboard = () => {
                   </div>
                 ) : (
                   <>
-                  {
-                    myPlaylist.length > 0 && (<>
-                      {
-                        myPlaylist.map(item => 
-                          <Song 
-                            myPlaylist={myPlaylist}
-                            removeFromPlaylist={removeFromPlaylist}
-                            saveToPlaylist={saveToPlaylist}
-                            key={item.trackId} 
-                            item={item} />)
-                      }
-                    </>)
-                  }
+                    {
+                      myPlaylist.length > 0 && (<>
+                        {
+                          myPlaylist.map(item =>
+                            <Song
+                              myPlaylist={myPlaylist}
+                              removeFromPlaylist={removeFromPlaylist}
+                              saveToPlaylist={saveToPlaylist}
+                              key={item.trackId}
+                              item={item} />)
+                        }
+                      </>)
+                    }
                   </>
                 )
               }
@@ -185,19 +217,19 @@ const Dashboard = () => {
 
               {
                 isLoading ? (<>
-                <div className="spinner-border text-warning" role="status">
-                  <span className="visually-hidden">Loading...</span>
-                </div>
+                  <div className="spinner-border text-warning" role="status">
+                    <span className="visually-hidden">Loading...</span>
+                  </div>
                 </>) : (<>
                   {
                     playlist.length > 0 && (<>
                       {
-                        playlist.map(item => 
-                          <Song 
+                        playlist.map(item =>
+                          <Song
                             myPlaylist={myPlaylist}
                             removeFromPlaylist={removeFromPlaylist}
                             saveToPlaylist={saveToPlaylist}
-                            key={item.trackId} 
+                            key={item.trackId}
                             item={item} />)
                       }
                     </>)
@@ -216,7 +248,7 @@ const Dashboard = () => {
 
         </div>
       </div>
-        
+
     </div>
 
   )
